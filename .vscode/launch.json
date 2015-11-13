@@ -1,0 +1,45 @@
+{
+    "version": "0.1.0",
+    "configurations": [     
+        {
+            "name": "Run mocha",
+            "type": "node",
+            
+            /* Globally installed mocha */
+            "program": "node_modules/mocha/bin/_mocha", 
+            "stopOnEntry": false,           
+            
+            /* Specify which are the file you want the runner to pick up. */
+            "args": ["tests/**/*.js"], 
+            "cwd": ".",
+            "runtimeExecutable": null,
+            "env": { 
+                "NODE_ENV": "production"
+            },
+            
+            /* If you are using Typescript and you alread have sourcemaps generated in                
+             * the test folder, simple specifying this flag will give the luxry 
+             * of debugging the typescript test instead of JavaScript.
+             */
+            "sourceMaps": true, 
+            
+            /* This is the directory where your tests are located.*/
+            "outDir": "test/" 
+        },
+		
+		{
+            "name": "Gulp",
+            "type": "node",
+            
+            /* Globally installed mocha */
+            "program": "node_modules/gulp/bin/gulp.js", 
+            "stopOnEntry": false,           
+            
+            /* Specify which are the file you want the runner to pick up. */
+            "args": ["watch"], 
+            "cwd": ".",
+            "runtimeExecutable": null,
+            "env": { }
+        }
+    ]
+}
