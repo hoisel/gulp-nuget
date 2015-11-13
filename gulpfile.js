@@ -12,8 +12,6 @@ var nugetPath = './tools/nuget.exe';
  
 var plugins = {
     baseDir:'./tools/plugins',
-    lastVersions:{},
-    numVersionsToPreserve: 3, 
     VERSION_PATTERN: /(\d\.\d\.\d(-dev\d{1,4})+)/,
     packagesDir: './packages'    
 };
