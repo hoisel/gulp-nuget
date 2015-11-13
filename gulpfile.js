@@ -1,6 +1,7 @@
 var gulp = require('gulp'),
 	del = require('del'),
     path = require('path'),
+    runSequence = require('run-sequence'),
     xmlpoke = require("gulp-xmlpoke"),
     semver = require('semver'),
     tap = require('gulp-tap'),
@@ -18,72 +19,32 @@ var plugins = {
 };
 
 
-gulp.task('nuget-pack', ['clear'], function () {
-    
+
+gulp.task('nuget-pack', function () {
    gulp.src('./tools/plugins/**/*.nuspec')
-       .pipe(cache('nuspecs'))
-       .pipe(nuget.pack({ nuget: nugetPath }))
-       .pipe(tap(function(file){
-           saveAsLastVersion(file);
-       }))
-       .pipe(gulp.dest(plugins.packagesDir));
+       .pipe(cache('nuspecs'))                  // só atua em arquivos que foram atualizados
+       .pipe(nuget.pack({ nuget: nugetPath }))  // cria packages
+       .pipe(gulp.dest(plugins.packagesDir))    // salva no dir destino
+       .pipe(tap(function(file){                // apaga versões antigas
+           return deleteOlderVersions(file);
+       }));
 });
-
-
-gulp.task('clear', function () {
-    return gulp.src('./packages/*.nupkg')
-               .pipe(tap(function(file){
-                   deleteOlderVersions( file, plugins.numVersionsToPreserve );
-               }));
-});
-
-
 
 
 function deleteOlderVersions(file, numVersionsToPreserve){
-   
-    var version = getVersionInfo(file);
-    var lastVersions = plugins.lastVersions[version.file];
-    
-    if(!lastVersions || lastVersions.length === 0){
-         return del(file.path, { force: true }); 
-    }
-    else if( lastVersions.length === numVersionsToPreserve ){
-        var minVersion = lastVersions[0];
-        
-        if(semver.lte(version.number, minVersion.number)){
-            console.log('apagando:', version.file, version.number, '<', minVersion.number); 
-            del(file.path, { force: true });
-        } 
-    }
-    
-    
-    // var version = getVersionInfo(file);
-    // var lastVersion = plugins.lastVersions[version.file];
-    // 
-    // if(!lastVersion){
-    //      del(file.path, { force: true }); 
-    // }
-    // 
-    // if( version && lastVersion && semver.lt(version.number, lastVersion.number) ){    
-    //     console.log('apagando:', version.number, '<', lastVersion.number); 
-    //     del(file.path, { force: true });
-    // }
-}
 
+    var lastVersion = getVersionInfo(file);
 
-function saveAsLastVersion(file) {
-    var version = getVersionInfo(file);
-    
-    var versions =  plugins.lastVersions[version.file] || [];
-    
-    if(versions.length >= plugins.numVersionsToPreserve){
-        versions.shift(); // remove older
-    }
-    
-    versions.push(version);
-
-    plugins.lastVersions[version.file] = versions;
+     gulp.src(path.join( plugins.packagesDir, lastVersion.file +'.*.nupkg' ))
+         .pipe(tap(function(f){
+                var version = getVersionInfo(f);
+                if( version && semver.lt(version.number, lastVersion.number) ){    
+                    console.log('apagando:', version.number, '<', lastVersion.number); 
+                    del(f.path, { force: true });
+                }
+         }));
+         
+     return file;
 }
 
 
@@ -92,12 +53,11 @@ function getVersionInfo(file){
     if(!file){ return null;}
     
     var fileName = path.basename(file.path);
-    var version = fileName.match(plugins.VERSION_PATTERN)[1];
+    var version = fileName.match(plugins.VERSION_PATTERN)[1].replace('dev','dev.');
     var fileNameWithoutVersion = fileName.split('.')[0];
            
     return { file: fileNameWithoutVersion, number: version};
 }
-
 
 
 

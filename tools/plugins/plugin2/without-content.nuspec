@@ -1,7 +1,7 @@
 <?xml version="1.0"?><package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>pacoteB</id>
-    <version>1.0.1-dev104</version>
+    <version>1.0.0-dev17</version>
     <authors>abc</authors>
     <owners>abc</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
