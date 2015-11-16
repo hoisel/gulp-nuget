@@ -13,7 +13,8 @@ var nugetPath = './tools/nuget.exe';
 var plugins = {
     baseDir:'./tools/plugins',
     VERSION_PATTERN: /(\d\.\d\.\d(-dev\d{1,4})+)/,
-    packagesDir: './packages'    
+    packagesDir: './packages'
+    //nuspecsFilter:  path.join( plugins.baseDir,'**', '*.nuspec') 
 };
 
 
@@ -22,7 +23,7 @@ gulp.task('nuget-pack', function () {
    gulp.src('./tools/plugins/**/*.nuspec')
        .pipe(cache('nuspecs'))                  // só atua em arquivos que foram atualizados
        .pipe(nuget.pack({ nuget: nugetPath }))  // cria packages
-       .pipe(gulp.dest(plugins.packagesDir))    // salva no dir destino
+       .pipe(gulp.dest(plugins.packagesDir))    // salva no dir destino nupckg
        .pipe(tap(function(file){                // apaga versões antigas
            return deleteOlderVersions(file);
        }));
@@ -70,17 +71,7 @@ gulp.task('watch', function () {
         var nuspecGlob = path.join( pluginDir,'**','*.nuspec' );
 
         gulp.src(nuspecGlob)
-            .pipe(xmlpoke({
-                replacements : [{
-                    namespaces : {"xmlns" : "http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"},
-                    xpath : "//xmlns:version", 
-                    value : function(node) {          
-                        // replace .(dot) because nuget incompatibility. Ref: https://docs.nuget.org/create/versioning
-                        return semver.inc(node.firstChild.data.replace('dev','dev.'),  'prerelease', 'dev').replace('dev.','dev'); 
-                    }
-                }]
-            }))
-            //.pipe(bump({ range:'prerelease', identifier: 'dev' }))
+            .pipe(nuget.bump({ range:'prerelease', identifier: 'dev' }))
             .pipe(gulp.dest(pluginDir));
     });
 });
